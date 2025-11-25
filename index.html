@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mega Numerology Kit</title>
+<style>
+:root {
+    --bg-color:#e0e0e0;
+    --card-color:#f0f0f3;
+    --text-color:#333;
+    --shadow-light:#ffffff;
+    --shadow-dark:#a3a3a3;
+}
+body.dark-mode {
+    --bg-color:#121212;
+    --card-color:#1e1e1e;
+    --text-color:#f0f0f0;
+    --shadow-light:#2a2a2a;
+    --shadow-dark:#000000;
+}
+body{
+    margin:0;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+}
+.app-frame{
+    border:2px solid var(--shadow-dark);
+    border-radius:20px;
+    padding:20px;
+    max-width:550px;
+    width:100%;
+    box-shadow:8px 8px 15px var(--shadow-dark), -8px -8px 15px var(--shadow-light);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    position: relative;
+}
+h1{
+    text-align:center;
+    margin-bottom:15px;
+}
+.accordion{
+    border-radius:15px;
+    box-shadow:5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    background: var(--card-color);
+}
+.accordion-header{
+    padding:12px 15px;
+    cursor:pointer;
+    border-radius:15px;
+    font-weight:bold;
+}
+.accordion-body{
+    display:none;
+    flex-direction:column;
+    padding:12px 15px;
+    gap:8px;
+}
+input[type="text"], input[type="date"], input[type="number"], select{
+    width:100%;
+    padding:10px;
+    border-radius:12px;
+    border:none;
+    font-size:16px;
+    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+    background: var(--card-color);
+    color: var(--text-color);
+}
+.master-number {
+    background: #ffecb3;
+    color: #b58900;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+}
+body.dark-mode .master-number {
+    background: #b58900;
+    color: #fff8dc;
+    box-shadow: 2px 2px 6px rgba(255,255,255,0.2);
+}
+.toggle-dark{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid var(--shadow-dark);
+    background: var(--card-color);
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1000;
+}
+.control-buttons{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin:10px 0;
+}
+button{
+    padding:10px 15px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+    box-shadow:5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    background: var(--card-color);
+    color: var(--text-color);
+}
+footer{
+    margin-top:auto;
+    text-align:center;
+    padding:10px;
+    font-size:14px;
+    color: var(--text-color);
+}
+@media(max-width:600px){
+    .app-frame{padding:15px;}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="app-frame">
+    <button class="toggle-dark" onclick="document.body.classList.toggle('dark-mode')">🌙</button>
+    <h1>Mega Numerology Kit</h1>
+    <div class="control-buttons">
+        <button onclick="resetAllCalculators()">Reset All</button>
+        <button onclick="saveAllCalculators()">Save All & Export</button>
+    </div>
+    <div id="accordions"></div>
+</div>
+<footer>© Manik Roy 2025. All Rights Reserved.</footer>
+
+<script>
+// Numerology maps
+const pMap={a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9,j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9,s:1,t:2,u:3,v:4,w:5,x:6,y:7,z:8};
+const cMap={a:1,b:2,c:3,d:4,e:5,f:8,g:3,h:5,i:1,j:1,k:2,l:3,m:4,n:5,o:7,p:8,q:1,r:2,s:3,t:4,u:6,v:6,w:6,x:5,y:1,z:7};
+const vMap={a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9,j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9,s:1,t:2,u:2,v:4,w:5,x:6,y:7,z:8};
+
+// Interpretations
+const pInterp={1:"Leadership",2:"Cooperation",3:"Creativity",4:"Stability",5:"Freedom",6:"Responsibility",7:"Spirituality",8:"Power",9:"Compassion",11:"Master Teacher",22:"Master Builder",33:"Master Healer"};
+const cInterp={1:"Self-reliant",2:"Diplomat",3:"Optimism",4:"Practical",5:"Adventurous",6:"Nurturing",7:"Analytical",8:"Ambitious",9:"Idealistic",11:"Visionary",22:"Builder",33:"Teacher"};
+const vInterp={1:"Leadership, destiny focus",2:"Harmony, duality",3:"Creativity",4:"Stability",5:"Adventure",6:"Family responsibility",7:"Spirituality",8:"Power, karma",9:"Compassion",11:"Master Teacher",22:"Master Builder",33:"Master Healer"};
+
+function reduceNumber(num){if([11,22,33].includes(num)) return num; while(num>9){num=num.toString().split('').reduce((a,b)=>parseInt(a)+parseInt(b),0);} return num;}
+function calcNameNumber(name,map){let sum=0;for(let c of name.toLowerCase().replace(/[^a-z]/g,'')){sum+=map[c]||0;}return reduceNumber(sum);}
+function calcDateNumber(dateStr){if(!dateStr) return 0;let [y,m,d]=dateStr.split('-');let sumY=y.split('').reduce((a,b)=>parseInt(a)+parseInt(b),0);let sumM=m.split('').reduce((a,b)=>parseInt(a)+parseInt(b),0);let sumD=d.split('').reduce((a,b)=>parseInt(a)+parseInt(b),0);return reduceNumber(sumY+sumM+sumD);}
+function calcNumberText(input,map){let sum=0;for(let c of input.toLowerCase()){if(/[a-z]/.test(c)) sum+=map[c]||0; else if(/\d/.test(c)) sum+=parseInt(c);}return reduceNumber(sum);}
+function vowels(c){return 'aeiou'.includes(c);}
+function consonants(c){return 'bcdfghjklmnpqrstvwxyz'.includes(c);}
+
+function displayResult(num,system,elem){const interp=(system==='p'?pInterp:system==='c'?cInterp:vInterp)[num];const isMaster=[11,22,33].includes(num);const numberHTML=isMaster?`<span class="master-number">${num} ✨</span>`:num;document.getElementById(elem).innerHTML=`<strong>Number:</strong> ${numberHTML}<br><strong>Meaning:</strong> ${interp||'Unique personal vibration'}`;}
+
+// Auto-calc functions
+function autoCalc(idx,type){
+    const sys=document.getElementById('system'+idx)?.value||'p';
+    let map=sys==='p'?pMap:sys==='c'?cMap:vMap;
+    if(type==='name') displayResult(calcNameNumber(document.getElementById('name'+idx)?.value||'',map),sys,'result'+idx);
+    else if(type==='date') displayResult(calcDateNumber(document.getElementById('dob'+idx)?.value||''),sys,'result'+idx);
+    else if(type==='name-date'){
+        const n=calcNameNumber(document.getElementById('name'+idx)?.value||'',map);
+        const d=calcDateNumber(document.getElementById('dob'+idx)?.value||'');
+        displayResult(reduceNumber(n+d),sys,'result'+idx);
+    }
+    else if(type==='text') displayResult(calcNumberText(document.getElementById('num'+idx)?.value||'',map),sys,'result'+idx);
+}
+
+// Reset all calculators
+function resetAllCalculators(){
+    for(let i=1;i<=60;i++){
+        const name=document.getElementById('name'+i);
+        const dob=document.getElementById('dob'+i);
+        const num=document.getElementById('num'+i);
+        const res=document.getElementById('result'+i);
+        const sys=document.getElementById('system'+i);
+        if(name) name.value=''; 
+        if(dob) dob.value=''; 
+        if(num) num.value=''; 
+        if(res) res.innerHTML=''; 
+        if(sys) sys.value='p';
+    }
+}
+
+// Save all results as TXT/PDF
+function saveAllCalculators(){
+    for(let i=1;i<=60;i++){ autoCalc(i,calculators[i-1][1]); }
+    let txt='Ultimate Numerology Toolkit Results\n\n';
+    let pdfData=[];
+    for(let i=1;i<=60;i++){
+        const title=document.querySelectorAll('.accordion-header')[i-1].innerText;
+        const res=document.getElementById('result'+i);
+        if(res && res.innerText.trim()!==''){
+            txt+=`${title}:\n${res.innerText}\n\n`;
+            pdfData.push({title, content:res.innerText});
+        }
+    }
+    // TXT
+    const blob=new Blob([txt],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='Numerology_Results.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    // PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 10;
+    pdfData.forEach(item=>{
+        doc.setFillColor(240,240,243);
+        doc.roundedRect(8, y, 194, 30, 4, 4, 'F');
+        doc.setDrawColor(200,200,200);
+        doc.roundedRect(9, y+1, 194, 30, 4, 4, 'S');
+        doc.setFontSize(14); doc.setTextColor(50,50,50); doc.text(item.title, 12, y+10);
+        y += 15;
+        const lines = item.content.split('\n');
+        lines.forEach(line=>{
+            let x=12;
+            line.split(' ').forEach(word=>{
+                const num=parseInt(word.replace('✨',''));
+                if([11,22,33].includes(num)) doc.setTextColor(212,175,55);
+                else if(!isNaN(num)&&num>9) doc.setTextColor(0,128,0);
+                else doc.setTextColor(50,50,50);
+                doc.text(word+' ', x, y);
+                x+=doc.getTextWidth(word+' ');
+            });
+            y+=7;
+            if(y>270){ doc.addPage(); y=10; }
+        });
+        y+=10;
+    });
+    doc.save('Numerology_Results.pdf');
+}
+
+// Accordion creator
+function createAccordion(id,title,type,systemRequired=true){
+    const nameInput=`<input type="text" id="name${id}" placeholder="Enter Name">`;
+    const dateInput=`<input type="date" id="dob${id}">`;
+    const numberInput=`<input type="text" id="num${id}" placeholder="Enter Number/Text">`;
+    const systemSelect=systemRequired?`<select id="system${id}"><option value="p">Pythagoras</option><option value="c">Chaldean</option><option value="v">Vedic</option></select>`:'';
+    let bodyHTML='';
+    if(type==='name') bodyHTML=`${nameInput}${systemSelect}<div id="result${id}"></div>`;
+    else if(type==='date') bodyHTML=`${dateInput}${systemSelect}<div id="result${id}"></div>`;
+    else if(type==='name-date') bodyHTML=`${nameInput}${dateInput}${systemSelect}<div id="result${id}"></div>`;
+    else if(type==='text') bodyHTML=`${numberInput}${systemSelect}<div id="result${id}"></div>`;
+    return `<div class="accordion"><div class="accordion-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='flex'?'none':'flex';">${title}</div><div class="accordion-body" id="body${id}" style="display:flex;flex-direction:column;">${bodyHTML}</div></div>`;
+}
+
+// 60 calculators
+const calculators=[["Life Path","date"],["Expression","name"],["Soul Urge","name"],["Personality","name"],["Birthday","date"],["Maturity","name-date"],["Balance","name"],["Current Name","name"],["Hidden Passion","name"],["Karmic Lesson","name"],["Name Change","name"],["Business Name","name"],["House Number","text"],["Car Plate Number","text"],["Vehicle Registration","text"],["Phone Number","text"],["Lucky Day","date"],["Destiny Number","name-date"],["Achievement Number","name-date"],["Challenge Number","name-date"],["Hidden Desire","name"],["Pinnacle","date"],["Period","date"],["Essence","date"],["Attitude","name"],["Mentality","name"],["Physical Body","date"],["Emotional Body","date"],["Spiritual Path","name"],["Fortune Number","name-date"],["Career Number","name"],["Travel Number","text"],["Education Number","text"],["Relationship Number","name-date"],["Marriage Number","name-date"],["Childhood Number","date"],["Parent Number","name"],["Family Karma","name"],["Money Number","name-date"],["Investment Number","text"],["Luck Cycle","date"],["Health Number","name-date"],["Fame Number","name"],["Power Number","name"],["Growth Number","name-date"],["Maturity Number","name-date"],["Innovation Number","name"],["Creativity Number","name"],["Wisdom Number","name"],["Knowledge Number","name"],["Opportunity Number","name"],["Success Number","name"],["Guidance Number","name"],["Protection Number","name"],["Motivation Number","name"],["Energy Number","name"],["Stability Number","name"],["Intuition Number","name"],["Inspiration Number","name"],["Vision Number","name"]];
+
+window.addEventListener('DOMContentLoaded',()=>{
+    const container=document.getElementById('accordions');
+    calculators.forEach((c,i)=>{
+        const idx=i+1;
+        container.innerHTML+=createAccordion(idx,c[0],c[1]);
+        setTimeout(()=>{
+            if(c[1]==='name') document.getElementById('name'+idx)?.addEventListener('input',()=>autoCalc(idx,'name'));
+            if(c[1]==='date') document.getElementById('dob'+idx)?.addEventListener('input',()=>autoCalc(idx,'date'));
+            if(c[1]==='name-date'){
+                document.getElementById('name'+idx)?.addEventListener('input',()=>autoCalc(idx,'name-date'));
+                document.getElementById('dob'+idx)?.addEventListener('input',()=>autoCalc(idx,'name-date'));
+            }
+            if(c[1]==='text') document.getElementById('num'+idx)?.addEventListener('input',()=>autoCalc(idx,'text'));
+            document.getElementById('system'+idx)?.addEventListener('change',()=>autoCalc(idx,c[1]));
+        },50);
+    });
+});
+</script>
+</body>
+</html>
